@@ -2,9 +2,9 @@
 
 class CountryInfo
 {
-  final String countryCode;
-  final String countryName;
-  final bool isBanned;
-  final String banReason;
+  late final String countryCode;
+  late final String countryName;
+  late final bool isBanned;
+  late final String banReason;
   CountryInfo(this.countryCode, this.countryName, this.isBanned, this.banReason);
 }

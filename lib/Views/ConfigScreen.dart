@@ -25,8 +25,7 @@ class _ConfigScreenState extends State<ConfigScreen>
   final banReasonController = TextEditingController();
   final countryCodeController = TextEditingController();
   final countryNameController = TextEditingController();
-  //List<String> cardDetails = [];
-  //List<String> countries = [];
+  CountryInfo? SelectedCountry;
   //Establish a list of dropdown menu items with a default unset item:
   List<DropdownMenuItem<String>> dropdownMenuItems = [
     const DropdownMenuItem(
@@ -162,6 +161,14 @@ class _ConfigScreenState extends State<ConfigScreen>
                   const SizedBox(width: 20),
                   Text(country.countryCode),
                   const SizedBox(width: 20),
+                  TextButton.icon(onPressed:(){
+                    setState(() {
+                      SelectedCountry = country;
+                    });
+                  }, 
+                    icon: const Icon(Icons.edit), 
+                    label: const Text("Edit"),),
+                  const SizedBox(width: 20),
                   TextButton.icon(onPressed: ()
                   {
                     log("Delete button pressed");
@@ -190,6 +197,13 @@ class _ConfigScreenState extends State<ConfigScreen>
                   Text(country.countryName),
                   Text(country.countryCode),
                   const SizedBox(width: 20),
+                  TextButton.icon(onPressed:(){
+                    setState(() {
+                      SelectedCountry = country;
+                    });
+                  }, 
+                    icon: const Icon(Icons.edit), 
+                    label: const Text("Edit"),),
                   TextButton.icon(onPressed: ()
                   {
                     log("Delete button pressed");
@@ -245,39 +259,94 @@ class _ConfigScreenState extends State<ConfigScreen>
   //List builder:
   Widget BuildCountryList(BuildContext context, List<CountryInfo> countries)
   {
-    return ListView.builder(
-      scrollDirection: Axis.vertical,
-      shrinkWrap: true,
-      itemCount: countries.length,
-      itemBuilder: (context, index)
-      {
-        return BuildCountryListTile(context, countries[index]);
-      }
-    );
+    try
+    {
+      return ListView.builder(
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        itemCount: countries.length,
+        itemBuilder: (context, index)
+        {
+          return BuildCountryListTile(context, countries[index]);
+        }
+      );
+    }
+    catch(ex)
+    {
+      log("Error occurred building country list. $ex");
+      return Center(
+        child: Text("Error occurred building country list.\n $ex"),
+      );
+    }
   }
   Widget CountryUpdateForm(Key formKey)
   {
-    return Column(
-      children: [
-        //Placeholder for now.
-        Row(children: [
-          //Will need to load in the data from the database here.
-          const Text("Select a country to edit: "),
-          const SizedBox(width: 20),
-          DropdownButton(
-           items: const [
-             DropdownMenuItem(
-               value: "nothing selected",
-               child: Text("Nothing selected"),
-             ),
-           ],onChanged: (value) {
-             
-           },
-             )
-           ], 
-        )
-      ],
-    );
+    if (SelectedCountry != null)
+    {
+      return Column(
+        children:[
+          TextFormField(
+            controller: TextEditingController(text: SelectedCountry!.countryName),
+            onChanged: (value) {
+              setState(() {
+                SelectedCountry!.countryName = value;
+              });
+            },
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: TextEditingController(text: SelectedCountry!.countryCode),
+            onChanged: (value) {
+              setState(() {
+                SelectedCountry!.countryCode = value;
+              });
+            }
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              const Text("Is banned: "),
+              Checkbox(value: SelectedCountry!.isBanned == true, onChanged: (newVal)
+              {
+                setState(() {
+                  SelectedCountry!.isBanned = newVal! ? true : false;
+                });
+              }),
+            ]
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: TextEditingController(text: SelectedCountry!.banReason),
+            onChanged: (value) {
+              setState(() {
+                SelectedCountry!.banReason = value;
+              });
+            }
+          ),
+          const SizedBox(height: 20),
+          Row(
+            //Buttons: Save and reset:
+            children: [
+              ElevatedButton.icon(onPressed: () async{
+                //This should first check if the content is valid before submitting.
+              }, 
+                icon: const Icon(Icons.save), 
+                label: const Text("Save")),
+              const SizedBox(width: 20),
+              ElevatedButton.icon(onPressed: () {
+                //reset the inputs to their original values.
+              }, 
+                icon: const Icon(Icons.do_disturb_alt_outlined), 
+                label: const Text("Cancel")),
+            ]
+          )
+        ]
+      );
+    }
+    else
+    {
+      return const Text("Please select a country from the list below to edit.");
+    }
   }
   Widget CountryRegistrationForm(Key formKey)
   {
@@ -336,7 +405,7 @@ class _ConfigScreenState extends State<ConfigScreen>
             {
               try
               {
-                //First make sure everything is valid:
+                //First make sure everything is valid: -> ValidateData needs to have some changes to handle editing.
                 bool isValid = ValidateData();
                 if(isValid)
                 {
@@ -429,6 +498,8 @@ class _ConfigScreenState extends State<ConfigScreen>
                 children: [
                   const SizedBox(height: 10),
                   const Text("Registered countries"),
+                  //Ultimately this column should scroll independently but be contained within the main scroll view.
+                  //It is just a case of how do I achieve that? Not sure yet...
                   Column(
                     children: [
                       BlocBuilder<AppBloc,BlocState>(

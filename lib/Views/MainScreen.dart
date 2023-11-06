@@ -216,6 +216,8 @@ class _MainScreenState extends State<MainScreen>
             ),
             Expanded(
               //This list can grow, hence scrollable view.
+              //Ultimately this column should scroll independently but be contained within the main scroll view.
+              //It is just a case of how do I achieve that? Not sure yet...
               child: BlocBuilder<AppBloc, BlocState>(
                 builder: (context, state)
                 {
