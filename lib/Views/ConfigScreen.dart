@@ -20,7 +20,7 @@ class ConfigScreen extends StatefulWidget
 class _ConfigScreenState extends State<ConfigScreen> 
 {
   final _formKey=GlobalKey<FormState>();
-  bool isUpdatingExistingCountry = false;
+  bool IsUpdatingExistingCountry = false;
   int? isBanned = 0;
   final banReasonController = TextEditingController();
   final countryCodeController = TextEditingController();
@@ -38,50 +38,58 @@ class _ConfigScreenState extends State<ConfigScreen>
   
   bool ValidateData()
   {
-    if(_formKey.currentState != null && _formKey.currentState!.validate())
+  //need to wrap this in an if-else block to handle the editing of existing country details...
+    if(IsUpdatingExistingCountry == true)
     {
-      //Check that all the inputs are properly populated and that if the "true" option is selected, that the ban reason is not empty and not "not banned":
-      if(isBanned == 1 && banReasonController.text.isNotEmpty && countryCodeController.text.isNotEmpty && countryNameController.text.isNotEmpty)
+      //This is not yet ready for use
+      return false;
+    }
+    else
+    {
+      if(_formKey.currentState != null && _formKey.currentState!.validate())
       {
-        if(banReasonController.text != "not banned")
+        //Check that all the inputs are properly populated and that if the "true" option is selected, that the ban reason is not empty and not "not banned":
+        if(isBanned == 1 && banReasonController.text.isNotEmpty && countryCodeController.text.isNotEmpty && countryNameController.text.isNotEmpty)
         {
-          //return because the condition is satisfied.
-          return true;
+          if(banReasonController.text != "not banned")
+          {
+            //return because the condition is satisfied.
+            return true;
+          }
+          else
+          {
+            //This would occur if either the ban reason is not specified or "not banned" : warn the user using an infobar:
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Please specify a valid ban reason"),
+              )
+            );
+            return false;
+          }
+        }
+        else if (isBanned == 0 && countryCodeController.text.isNotEmpty && countryNameController.text.isNotEmpty)
+        {
+          if(banReasonController.text.isEmpty)
+          {
+            //Default this to "Not banned" and return
+            banReasonController.text = "Not banned";
+            return true;
+          }
         }
         else
         {
-          //This would occur if either the ban reason is not specified or "not banned" : warn the user using an infobar:
+          //Show an infobar and return false:
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("Please specify a valid ban reason"),
-            )
+              content: Text("Please specify a valid country name and country code"),
+            ) 
           );
           return false;
         }
       }
-      else if (isBanned == 0 && countryCodeController.text.isNotEmpty && countryNameController.text.isNotEmpty)
-      {
-        if(banReasonController.text.isEmpty)
-        {
-          //Default this to "Not banned" and return
-          banReasonController.text = "Not banned";
-          return true;
-        }
-      }
-      else
-      {
-        //Show an infobar and return false:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Please specify a valid country name and country code"),
-          ) 
-        );
-        return false;
-      }
+      return false;
     }
-    return false;
   }
-
   @override
   void initState()
   {
@@ -333,7 +341,7 @@ class _ConfigScreenState extends State<ConfigScreen>
                 if(isValid)
                 {
                 //Handle the registration or updating process appropriately.
-                  if(isUpdatingExistingCountry)
+                  if(IsUpdatingExistingCountry)
                   {
                     log("update country data is true");
                     //Use the UpdateCountryDetails event:
@@ -394,7 +402,7 @@ class _ConfigScreenState extends State<ConfigScreen>
           {
             //control the form being displayed in the scaffold below, and set the isUpdatingExistingCountry to false
             setState(() {
-              isUpdatingExistingCountry = false;
+              IsUpdatingExistingCountry = false;
             });
           }, 820),
         _buildResponsiveAction(context,
@@ -402,7 +410,7 @@ class _ConfigScreenState extends State<ConfigScreen>
           {
             //control the form being displayed in the scaffold below, and set the isUpdatingExistingCountry to true
             setState(() {
-              isUpdatingExistingCountry = true;
+              IsUpdatingExistingCountry = true;
             });
           }, 820)
         ]
@@ -414,7 +422,7 @@ class _ConfigScreenState extends State<ConfigScreen>
           scrollDirection: Axis.vertical,
           child: Column(
             children: [
-              isUpdatingExistingCountry 
+              IsUpdatingExistingCountry 
                 ? CountryUpdateForm(_formKey)
                 : CountryRegistrationForm(_formKey),
               Column(
